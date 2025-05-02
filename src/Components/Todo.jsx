@@ -6,163 +6,32 @@ import IconButton from '@mui/material/IconButton';
 import CheckIcon from '@mui/icons-material/Check';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { useContext, useState } from "react";
-import { TodoContext } from "../Contexts/todoContext";
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
-import { TextField } from '@mui/material';
-import Snackbar from '@mui/material/Snackbar';
-import CloseIcon from '@mui/icons-material/Close';
+import { useToast } from "../Contexts/ToastContext";
+import { useTodos } from "../Contexts/todoContext";
 
 
-export default function Todo({ todo }) {
-    const { todos, setTodos } = useContext(TodoContext)
-    const [open, setOpen] = useState(false);
-    const [openUpdate, setOpenUpdate] = useState(false);
-    const [updateInput, setUpdateInput] = useState({ UpdatedTitle: todo.title, UpdatedDesc: todo.details })
+
+export default function Todo({ todo, DeleteClick, updateClick }) {
+    const { todos, dispatch } = useTodos()
+
+    const { showHideToast } = useToast();
+
 
     function handleCompele() {
-        const updatedTodos = todos.map((t) => {
-            if (t.id == todo.id) {
-                t.isCompleted = !t.isCompleted
-            }
-            return t
-        })
-        setTodos(updatedTodos)
-        localStorage.setItem('todo', JSON.stringify(updatedTodos))
+        dispatch({ type: "CompleteTodo", payload: todo })
+        showHideToast("Status Updated")
 
     }
-
-    const handleDeleteModalClose = () => {
-        setOpen(false);
-    };
-    const handleUpdateModalClose = () => {
-        setOpenUpdate(false);
-    };
-
 
     function handleDeleteClick() {
-        setOpen(true);
+        DeleteClick(todo);
     }
     function handleUpdateClick() {
-        setOpenUpdate(true);
-    }
-
-    function handleDeleteConfirmation() {
-        const filteredTodos = todos.filter((t) => {
-            return t.id != todo.id
-        })
-        setTodos(filteredTodos)
-        localStorage.setItem('todo', JSON.stringify(filteredTodos))
-
-    }
-
-    function updateTask() {
-        const updatedTodos = todos.map((t) => {
-            if (t.id == todo.id) {
-                return { ...t, title: updateInput.UpdatedTitle, details: updateInput.UpdatedDesc }
-            }
-            else {
-                return t
-            }
-        })
-        setTodos(updatedTodos);
-        localStorage.setItem('todo', JSON.stringify(updatedTodos))
-        setOpenUpdate(false);
+        updateClick(todo)
     }
 
     return (
         <>
-
-            {/* /////////////////////////////////////////////////////////// */}
-
-            <Dialog
-                open={open}
-                onClose={handleDeleteModalClose}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-            >
-                <DialogTitle id="alert-dialog-title">
-                    {"Are you sure you want to complete the deletion?"}
-                </DialogTitle>
-
-                <DialogContent>
-
-                    <DialogContentText id="alert-dialog-description">
-                        You cannot undo a delete once it is completed
-                    </DialogContentText>
-
-                </DialogContent>
-
-                <DialogActions>
-                    <Button onClick={handleDeleteConfirmation} autoFocus>
-                        Agree
-                    </Button>
-                    <Button onClick={handleDeleteModalClose}>Close</Button>
-                </DialogActions>
-            </Dialog>
-
-            {/* /////////////////////////////////////////////////////////// */}
-
-            <Dialog
-                open={openUpdate}
-                onClose={handleUpdateModalClose}
-                slotProps={{
-                    paper: {
-                        component: 'form',
-                        onSubmit: (event) => {
-                            event.preventDefault();
-                            const formData = new FormData(event.currentTarget);
-                            const formJson = Object.fromEntries(formData.entries());
-                            const email = formJson.email;
-                            console.log(email);
-                            handleDeleteModalClose();
-                        },
-                    },
-                }}
-            >
-                <DialogTitle>Todo</DialogTitle>
-                <DialogContent>
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        id="title"
-                        name="title"
-                        label="Todo Title"
-                        type="text"
-                        fullWidth
-                        variant="standard"
-                        value={updateInput.UpdatedTitle}
-                        onChange={(event) => {
-                            setUpdateInput({ ...updateInput, UpdatedTitle: event.target.value })
-                        }}
-                    />
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        id="desc"
-                        name="desc"
-                        label="Description"
-                        type="text"
-                        fullWidth
-                        variant="standard"
-                        value={updateInput.UpdatedDesc}
-                        onChange={(event) => {
-                            setUpdateInput({ ...updateInput, UpdatedDesc: event.target.value })
-                        }}
-                    />
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={updateTask}>Update</Button>
-                    <Button onClick={handleUpdateModalClose}>Cancel</Button>
-                </DialogActions>
-            </Dialog>
-
-            {/* /////////////////////////////////////////////////////////// */}
 
             <Card className='card-box' sx={{ minWidth: 275, marginTop: "10px", background: "#303f9f", color: "white" }} elevation={2} >
 
